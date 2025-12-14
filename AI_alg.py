@@ -321,6 +321,136 @@ def predict_match(model, player_a_stats, player_b_stats, surface, tourney_level)
     
     return prob[1]  # Prawdopodobieństwo wygranej Player A
 
+
+def show_charts():
+    # =============================================================================
+    # A. WYKRES ROZKŁADU RĘCZNOŚCI ZAWODNICZEK
+    # =============================================================================
+
+    print("\n=== Wykres: ręczność zawodniczek ===")
+
+    # Zbierz informacje o ręczności ze stron winner i loser
+    winner_hands = df[['winner_name', 'winner_hand']].rename(columns={
+        'winner_name': 'player_name',
+        'winner_hand': 'hand'
+    })
+    loser_hands = df[['loser_name', 'loser_hand']].rename(columns={
+        'loser_name': 'player_name',
+        'loser_hand': 'hand'
+    })
+
+    players_hands = pd.concat([winner_hands, loser_hands], ignore_index=True)
+
+    # Usunięcie duplikatów (ta sama zawodniczka może być wielokrotnie)
+    players_hands = players_hands.dropna(subset=['hand'])
+    players_hands = players_hands.drop_duplicates(subset=['player_name'])
+
+    # Zliczenie zawodniczek według ręki
+    hand_counts = players_hands['hand'].value_counts()
+
+    plt.figure(figsize=(6, 4))
+    sns.barplot(x=hand_counts.index, y=hand_counts.values, palette='viridis')
+    plt.title('Liczba zawodniczek wg ręczności')
+    plt.xlabel('Ręka (R – prawa, L – lewa, U – nieznana)')
+    plt.ylabel('Liczba zawodniczek')
+    plt.tight_layout()
+    plt.savefig('players_hand_distribution.png', dpi=150)
+    plt.show()
+
+    print(hand_counts)
+
+    # =============================================================================
+    # B. WYKRES ROZKŁADU WZROSTU ZAWODNICZEK (PRZEDZIAŁY CO 5 CM)
+    # =============================================================================
+
+    print("\n=== Wykres: rozkład wzrostu zawodniczek ===")
+
+    winner_ht = df[['winner_name', 'winner_ht']].rename(columns={
+        'winner_name': 'player_name',
+        'winner_ht': 'height'
+    })
+    loser_ht = df[['loser_name', 'loser_ht']].rename(columns={
+        'loser_name': 'player_name',
+        'loser_ht': 'height'
+    })
+
+    players_ht = pd.concat([winner_ht, loser_ht], ignore_index=True)
+    players_ht = players_ht.dropna(subset=['height'])
+
+    # Unikalne zawodniczki z jednym wzrostem (np. pierwsze wystąpienie)
+    players_ht = players_ht.drop_duplicates(subset=['player_name'])
+
+    # Ustalenie zakresu i przedziałów co 5 cm
+    min_h = int(players_ht['height'].min() // 5 * 5)
+    max_h = int(players_ht['height'].max() // 5 * 5 + 5)
+
+    bins = np.arange(min_h, max_h + 5, 5)
+
+    plt.figure(figsize=(10, 5))
+    plt.hist(players_ht['height'], bins=bins, edgecolor='black')
+    plt.title('Rozkład wzrostu zawodniczek (przedziały co 5 cm)')
+    plt.xlabel('Wzrost [cm]')
+    plt.ylabel('Liczba zawodniczek')
+    plt.xticks(bins, rotation=45)
+    plt.tight_layout()
+    plt.savefig('players_height_distribution.png', dpi=150)
+    plt.show()
+
+    print(players_ht['height'].describe())
+
+    # =============================================================================
+    # C. WYKRES LICZBY MECZÓW NA POSZCZEGÓLNYCH NAWIERZCHNIACH
+    # =============================================================================
+
+    print("\n=== Wykres: liczba meczów na nawierzchniach ===")
+
+    surface_counts = df['surface'].fillna('Unknown').value_counts()
+
+    plt.figure(figsize=(6, 4))
+    sns.barplot(x=surface_counts.index, y=surface_counts.values, palette='magma')
+    plt.title('Liczba meczów na poszczególnych nawierzchniach')
+    plt.xlabel('Nawierzchnia')
+    plt.ylabel('Liczba meczów')
+    plt.tight_layout()
+    plt.savefig('surface_match_distribution.png', dpi=150)
+    plt.show()
+
+    print(surface_counts)
+
+    # =============================================================================
+    # D. WYKRES ROZKŁADU WIEKU ZAWODNICZEK
+    # =============================================================================
+
+    print("\n=== Wykres: rozkład wieku zawodniczek ===")
+
+    winner_age = df[['winner_name', 'winner_age']].rename(columns={
+        'winner_name': 'player_name',
+        'winner_age': 'age'
+    })
+    loser_age = df[['loser_name', 'loser_age']].rename(columns={
+        'loser_name': 'player_name',
+        'loser_age': 'age'
+    })
+
+    players_age = pd.concat([winner_age, loser_age], ignore_index=True)
+    players_age = players_age.dropna(subset=['age'])
+
+    # Unikalne zawodniczki
+    players_age = players_age.drop_duplicates(subset=['player_name'])
+
+    plt.figure(figsize=(10, 5))
+    sns.histplot(players_age['age'], bins=15, kde=True, color='teal')
+    plt.title('Rozkład wieku zawodniczek')
+    plt.xlabel('Wiek [lata]')
+    plt.ylabel('Liczba zawodniczek')
+    plt.tight_layout()
+    plt.savefig('players_age_distribution.png', dpi=150)
+    plt.show()
+
+    print(players_age['age'].describe())
+
+#====== EXAMPLES ========
+
 # Przykład: Iga Świątek vs Aryna Sabalenka
 print("\n=== Przykład przewidywania ===")
 print("Mecz: Iga Świątek vs Aryna Sabalenka na Hard (Grand Slam)")
@@ -341,12 +471,16 @@ sabalenka_stats = {
     'rank_points': 8500
 }
 
-try:
-    prob_iga_wins = predict_match(rf_model, iga_stats, sabalenka_stats, 'Hard', 'G')
-    print(f"\nPrawdopodobieństwo wygranej Igi Świątek: {prob_iga_wins:.2%}")
-    print(f"Prawdopodobieństwo wygranej Aryny Sabalenki: {1-prob_iga_wins:.2%}")
-except Exception as e:
-    print(f"Błąd predykcji: {e}")
-    print("(Może być spowodowany brakiem niektórych wartości w encoderach)")
+def run_predict():
+    try:
+        prob_iga_wins = predict_match(rf_model, iga_stats, sabalenka_stats, 'Hard', 'G')
+        print(f"\nPrawdopodobieństwo wygranej Igi Świątek: {prob_iga_wins:.2%}")
+        print(f"Prawdopodobieństwo wygranej Aryny Sabalenki: {1-prob_iga_wins:.2%}")
+    except Exception as e:
+        print(f"Błąd predykcji: {e}")
+        print("(Może być spowodowany brakiem niektórych wartości w encoderach)")
+
+# run_predict()
+show_charts()
 
 print("\n=== Zakończono analizę ===")
