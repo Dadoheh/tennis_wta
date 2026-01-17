@@ -498,3 +498,12 @@ tennis_wta/
 
 ---
 
+Wykresy:
+
+![Wykres1](https://github.com/Dadoheh/tennis_wta/blob/c4b4720491cf26ef5c11df4e27d51fe811f2edb2/confusion_matrix.png "Wykres1")
+![Wykres2](https://github.com/Dadoheh/tennis_wta/blob/c4b4720491cf26ef5c11df4e27d51fe811f2edb2/feature_importance.png "Wykres2")
+![Wykres3](https://github.com/Dadoheh/tennis_wta/blob/c4b4720491cf26ef5c11df4e27d51fe811f2edb2/players_age_distribution.png "Wykres3")
+![Wykres4](https://github.com/Dadoheh/tennis_wta/blob/c4b4720491cf26ef5c11df4e27d51fe811f2edb2/players_hand_distribution.png "Wykres4")
+![Wykres5](https://github.com/Dadoheh/tennis_wta/blob/c4b4720491cf26ef5c11df4e27d51fe811f2edb2/players_height_distribution.png "Wykres5")
+![Wykres6](https://github.com/Dadoheh/tennis_wta/blob/c4b4720491cf26ef5c11df4e27d51fe811f2edb2/surface_match_distribution.png "Wykres6")
+
